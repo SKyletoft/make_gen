@@ -9,37 +9,37 @@
 	outputs = { self, nixpkgs, flake-utils }:
 		flake-utils.lib.eachDefaultSystem(system:
 			let
-				pkgs     = nixpkgs.legacyPackages.${system};
-				version  = "0.0.1";
-				src      = self;
-					custom-haskell = pkgs.ghc.withPackages(pkgs: with pkgs; [
-						split
-						directory_1_3_7_0
-						extra
+				pkgs    = nixpkgs.legacyPackages.${system};
+				version = "0.0.1";
+				src     = self;
+				
+				deps = with pkgs.haskellPackages; [
+					directory_1_3_7_0
+					extra
+				];
+				tools = with pkgs.haskellPackages; [
+					hindent
+					stylish-haskell
+					QuickCheck
+				];
 
-						hindent
-						stylish-haskell
-						QuickCheck
-					]);
+				build-haskell = pkgs.ghc.withPackages(pkgs: deps);
+				dev-haskell   = pkgs.ghc.withPackages(pkgs: deps ++ tools);
 			in rec {
 				packages = {
-					artemis-unwrapped = pkgs.rustPlatform.buildRustPackage {
-						inherit src version;
-						pname              = "artemis";
-						cargoSha256        = "sha256-ah8IjShmivS6IWL3ku/4/j+WNr/LdUnh1YJnPdaFdcM=";
-						cargoLock.lockFile = "${self}/Cargo.lock";
+					makegen = pkgs.stdenv.mkDerivation {
+						inherit version src;
+						pname = "makegen";
+						nativeBuildInputs = [ build-haskell ];
 					};
-
-					default = packages.artemis-wrapped;
+					default = packages.makegen;
 				};
 
 				devShell = pkgs.mkShell {
 					shellHook = ''
 						PS1="\e[32;1mnix-flake: \e[34m\w \[\033[00m\]\n↳ "
 					'';
-					nativeBuildInputs = with pkgs; [
-						custom-haskell
-					];
+					nativeBuildInputs = with pkgs; [ dev-haskell ];
 				};
 			}
 		);
