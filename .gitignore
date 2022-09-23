@@ -4,3 +4,6 @@
 .vscode
 .intellij
 link
+
+test/makefile
+result
