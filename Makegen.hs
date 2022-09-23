@@ -48,12 +48,11 @@ generateMakeRule filename =
 getRecursiveFiles :: FilePath -> IO [FilePath]
 getRecursiveFiles path = do
   isFolder <- doesDirectoryExist path
-  here <- listDirectory path
   if isFolder
-    then concatMapM getRecursiveFiles here
+    then concatMapM getRecursiveFiles =<< listDirectory path
     else return [path]
 
 main :: IO ()
 main =
-  putStrLn . unlines . filter (/= []) . map generateMakeRule =<<
-  listDirectory "."
+  putStrLn . unlines  =<<
+  getRecursiveFiles "."
