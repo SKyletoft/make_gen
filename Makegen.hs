@@ -60,8 +60,9 @@ getRecursiveFiles path = do
   isFolder <- doesDirectoryExist path
   let addPathTo file = path ++ '/' : file
   if isFolder
-    then fmap (map addPathTo) . concatMapM getRecursiveFiles =<<
-         listDirectory path
+    then concatMapM getRecursiveFiles
+      . map addPathTo
+      =<< listDirectory path
     else return [path]
 
 stripThisFolder :: FilePath -> FilePath
